@@ -4,8 +4,8 @@
 	branch = master
 [submodule "lib/chibios-contrib"]
 	path = lib/chibios-contrib
-	url = https://github.com/qmk/ChibiOS-Contrib
-	branch = master
+	url = https://github.com/doombadroid/ChibiOS-Contrib
+	branch = ducky-nuc126
 [submodule "lib/googletest"]
 	path = lib/googletest
 	url = https://github.com/qmk/googletest
