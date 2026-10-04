@@ -1,3 +1,6 @@
+// Copyright 2026 doombadroid (@doombadroid)
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
 #define NUC126_MCUCONF

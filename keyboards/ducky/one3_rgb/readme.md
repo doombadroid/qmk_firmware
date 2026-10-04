@@ -33,12 +33,19 @@ Enter the bootloader with any of:
 **Back to stock:** D + L, then flash Ducky's own APROM image (it is embedded in Ducky's official
 updater) with the same command. `flash` launches the image when it finishes.
 
-QMK only writes its EEPROM pages (`0x30000`-`0x30FFF`) and the stock LDROM request word at
+QMK only writes its EEPROM pages (`0x30000`-`0x31FFF`) and the stock LDROM request word at
 `0x3F800`; CONFIG and LDROM are never written. The stock firmware's data flash (`0x33200`+) is left alone.
 
 Linux needs access to the bootloader's hidraw node, e.g. a udev rule:
 
     SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0416", ATTRS{idProduct}=="3f00", MODE="0660", GROUP="plugdev"
+
+## Live remapping (VIA)
+
+Flash the `via` keymap (`make ducky/one3_rgb:via`) to change keys, layers, macros and RGB from
+[usevia.app](https://usevia.app) (Chromium-based browser, WebHID) without reflashing. Until the board is
+in VIA's catalogue, load `keymaps/via/via.json` once: Settings -> Show Design tab -> Design -> Load.
+Linux needs read/write access to the keyboard's hidraw nodes (a udev rule for vendor `3233`).
 
 ## Fn layer
 

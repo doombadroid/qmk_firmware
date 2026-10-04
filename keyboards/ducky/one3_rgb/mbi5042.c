@@ -1,3 +1,5 @@
+// Copyright 2026 doombadroid (@doombadroid)
+// SPDX-License-Identifier: GPL-2.0-or-later
 // Ducky One 3 RGB: 3x MBI5042 (one per colour, 16 columns each) + 8 multiplexed LED rows.
 // Protocol reverse engineered from stock firmware V1.15; addresses in comments refer to that image.
 #include "quantum.h"

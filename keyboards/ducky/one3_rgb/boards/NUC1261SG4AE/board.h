@@ -1,3 +1,6 @@
+// Copyright 2026 doombadroid (@doombadroid)
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #pragma once
 
 /* NUC1261SG4AE (PDID 0x01205212) is register-compatible with the NUC126SG4AE. */

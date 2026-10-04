@@ -1,3 +1,5 @@
+// Copyright 2026 doombadroid (@doombadroid)
+// SPDX-License-Identifier: GPL-2.0-or-later
 // FMC ISP users: (1) wear-leveled EEPROM (WEAR_LEVELING_DRIVER = custom) in spare APROM pages 0x30000..,
 // above the QMK image (linker caps flash at 0x30000) and below everything stock owns (data flash 0x33200..0x3F7FF);
 // (2) the stock APROM->LDROM request on handshake page 0x3F800 for bootloader_jump().
