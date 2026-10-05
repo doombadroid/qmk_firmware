@@ -47,6 +47,17 @@ Flash the `via` keymap (`make ducky/one3_rgb:via`) to change keys, layers, macro
 in VIA's catalogue, load `keymaps/via/via.json` once: Settings -> Show Design tab -> Design -> Load.
 Linux needs read/write access to the keyboard's hidraw nodes (a udev rule for vendor `3233`).
 
+## DIP switches
+
+The four switches on the underside are read live (every 20 ms) and keep their stock functions:
+
+| DIP | OFF (default) | ON |
+|---|---|---|
+| 1 | Fn + Left Win toggles the Win-key lock | Win-key lock disabled |
+| 2 | NKRO | 6-key rollover |
+| 3 | unused (stock: USB vendor ID) | unused |
+| 4 | Right Win is Win | Right Win sends Menu |
+
 ## Fn layer
 
 | Key | Fn + key |
