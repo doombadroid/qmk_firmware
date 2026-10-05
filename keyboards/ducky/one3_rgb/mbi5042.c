@@ -144,7 +144,7 @@ static void mbi_set_color_all(uint8_t r, uint8_t g, uint8_t b) {
     for (int i = 0; i < RGB_MATRIX_LED_COUNT; i++) mbi_set_color(i, r, g, b);
 }
 
-// Publish a finished frame. RGB Matrix LEDs occupy rows 0-6 and row 7 ch 0-3 only (gen_layout.py asserts it), one
+// Publish a finished frame. RGB Matrix LEDs occupy rows 0-6 and row 7 ch 0-3 only (see led_map.h), one
 // contiguous 174-word span; row 7 ch 4-7 are the lock indicators, written to fb directly. TMR1 is masked for the
 // copy; NVIC_DisableIRQ keeps a tick that lands meanwhile pending (nvicEnableVector would clear it).
 #define FLUSH_WORDS ((7 * 16 + 4) * 3 / 2)

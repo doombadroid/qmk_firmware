@@ -1,6 +1,6 @@
 {
     "manufacturer": "Ducky",
-    "keyboard_name": "One 3 RGB (QMK)",
+    "keyboard_name": "One 3 RGB",
     "maintainer": "doombadroid",
     "usb": {
         "vid": "0x3233",

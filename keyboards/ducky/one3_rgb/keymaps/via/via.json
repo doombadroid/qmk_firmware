@@ -1,5 +1,5 @@
 {
-  "name": "Ducky One 3 RGB (QMK)",
+  "name": "Ducky One 3 RGB",
   "vendorId": "0x3233",
   "productId": "0x2108",
   "matrix": {
