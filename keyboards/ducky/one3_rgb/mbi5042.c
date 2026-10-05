@@ -18,8 +18,15 @@ static volatile uint32_t *const led_row[8] = {
 };
 static const pin_t led_row_pin[8] = {C6, C5, D7, D15, D14, D13, D12, F2};
 
-// fb[row][channel][chip]; chip 0 is shifted last (nearest the MCU)
-static uint16_t fb[8][16][3];
+// fb.px[row][channel][chip]; chip 0 is shifted last (nearest the MCU)
+// fb: shown by the TMR1 ISR. back: RGB Matrix draws here, and mbi_flush() publishes finished frames into fb.
+// Drawing straight into fb let the ISR show half-drawn frames (e.g. Solid Color's cyan before an indicator
+// hook repaints a key red: flicker). The word view lets the flush copy fast without aliasing tricks.
+typedef union {
+    uint16_t px[8][16][3];
+    uint32_t w[8 * 16 * 3 / 2];
+} frame_t;
+static frame_t fb, back;
 static uint8_t  cur_row;
 
 static inline void shift16(uint16_t w) {
@@ -53,9 +60,9 @@ OSAL_IRQ_HANDLER(Vector64) { // TMR1
     uint8_t next = (cur_row + 1) & 7;
     for (uint8_t ch = 0; ch < 16; ch++) {
         if (ch == 15) *led_row[cur_row] = 0;
-        shift16(fb[next][ch][2]);
-        shift16(fb[next][ch][1]);
-        shift16_latch(fb[next][ch][0]);
+        shift16(fb.px[next][ch][2]);
+        shift16(fb.px[next][ch][1]);
+        shift16_latch(fb.px[next][ch][0]);
     }
     // 2 plain clocks, then LE high for 3 clocks = "global latch"
     DCLK = 1;
@@ -75,7 +82,8 @@ OSAL_IRQ_HANDLER(Vector64) { // TMR1
 }
 
 static void mbi_init(void) {
-    memset(fb, 0, sizeof(fb));
+    memset(&fb, 0, sizeof(fb));
+    memset(&back, 0, sizeof(back));
 
     gpio_set_pin_output(C7); // LED power: keep off until the chain is clocked
     gpio_write_pin_high(C7);
@@ -126,7 +134,7 @@ static inline uint16_t pwm(uint8_t v) {
 
 static void mbi_set_color(int index, uint8_t r, uint8_t g, uint8_t b) {
     uint8_t hw = led_hw[index];
-    uint16_t *px = fb[hw >> 4][hw & 15];
+    uint16_t *px = back.px[hw >> 4][hw & 15];
     px[DUCKY_CHIP_R] = pwm(r);
     px[DUCKY_CHIP_G] = pwm(g);
     px[DUCKY_CHIP_B] = pwm(b);
@@ -136,7 +144,19 @@ static void mbi_set_color_all(uint8_t r, uint8_t g, uint8_t b) {
     for (int i = 0; i < RGB_MATRIX_LED_COUNT; i++) mbi_set_color(i, r, g, b);
 }
 
-static void mbi_flush(void) {} // ISR reads fb directly
+// Publish a finished frame. RGB Matrix LEDs occupy rows 0-6 and row 7 ch 0-3 only (gen_layout.py asserts it), one
+// contiguous 174-word span; row 7 ch 4-7 are the lock indicators, written to fb directly. TMR1 is masked for the
+// copy; NVIC_DisableIRQ keeps a tick that lands meanwhile pending (nvicEnableVector would clear it).
+#define FLUSH_WORDS ((7 * 16 + 4) * 3 / 2)
+static void mbi_flush(void) {
+    NVIC_DisableIRQ(TMR1_IRQn);
+    __DSB();
+    __ISB();
+    volatile uint32_t *dst = fb.w; // volatile: GCC would turn the loop into newlib memcpy, which copies bytes
+    for (uint32_t i = 0; i < FLUSH_WORDS; i++) dst[i] = back.w[i];
+    __DMB();
+    NVIC_EnableIRQ(TMR1_IRQn);
+}
 
 const rgb_matrix_driver_t rgb_matrix_driver = {
     .init          = mbi_init,
@@ -151,7 +171,7 @@ static bool asleep; // host suspended: indicators dark too (RGB matrix sleeps vi
 
 static void indicator(uint8_t ch, bool on) {
     uint16_t v = on && !asleep ? DUCKY_PWM_MAX : 0;
-    fb[7][ch][0] = fb[7][ch][1] = fb[7][ch][2] = v;
+    fb.px[7][ch][0] = fb.px[7][ch][1] = fb.px[7][ch][2] = v;
 }
 
 bool led_update_kb(led_t s) {
