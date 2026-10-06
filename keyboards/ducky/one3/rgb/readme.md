@@ -15,7 +15,7 @@ Untested: RGB off during host suspend.
 
 ## Build
 
-    make ducky/one3_rgb:default
+    make ducky/one3/rgb:default
 
 ## Flashing
 
@@ -42,7 +42,7 @@ Linux needs access to the bootloader's hidraw node, e.g. a udev rule:
 
 ## Live remapping (VIA)
 
-Flash the `via` keymap (`make ducky/one3_rgb:via`) to change keys, layers, macros and RGB from
+Flash the `via` keymap (`make ducky/one3/rgb:via`) to change keys, layers, macros and RGB from
 [usevia.app](https://usevia.app) (Chromium-based browser, WebHID) without reflashing. Until the board is
 in VIA's catalogue, load `keymaps/via/via.json` once: Settings -> Show Design tab -> Design -> Load.
 Linux needs read/write access to the keyboard's hidraw nodes (a udev rule for vendor `3233`).
