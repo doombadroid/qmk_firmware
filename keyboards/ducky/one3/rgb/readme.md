@@ -22,7 +22,7 @@ Untested: RGB off during host suspend.
 The stock Ducky bootloader (LDROM, USB `0416:3f00`, Nuvoton ISP_HID) stays installed and is never
 touched. Flash with [nu-isp-cli](https://crates.io/crates/nu-isp-cli) (`cargo install nu-isp-cli`):
 
-    nu-isp-cli 0416:3f00 flash ducky_one3_rgb_default.bin
+    make ducky/one3/rgb:default:flash
 
 Enter the bootloader with any of:
 
@@ -55,7 +55,7 @@ The four switches on the underside are read live (every 20 ms) and keep their st
 |---|---|---|
 | 1 | Fn + Left Win toggles the Win-key lock | Win-key lock disabled |
 | 2 | NKRO | 6-key rollover |
-| 3 | unused (stock: USB vendor ID) | unused |
+| 3 | unused (stock: USB ID 3233:1311) | unused (stock: a VID:PID set from the keyboard) |
 | 4 | Right Win is Win | Right Win sends Menu |
 
 ## Fn layer
