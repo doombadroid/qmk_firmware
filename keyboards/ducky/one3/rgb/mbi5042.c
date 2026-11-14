@@ -222,10 +222,50 @@ void suspend_wakeup_init_kb(void) {
     suspend_wakeup_init_user();
 }
 
-// Crystal-less USB: once SOF arrives, let HIRC48 auto-trim against it (stock does the same: IRCTCTL1 = 0x512).
+// Crystal-less USB: HIRC48 is auto-trimmed against the host's SOF, with the stock firmware's recovery:
+// arm only on a fresh SOF, restore the last good trim when a trim fails (TFAILIF1/CLKERRIF1), and keep the
+// trim within 16 steps (~2%) of its boot value. SYS_BASE + 0x118 is the HIRC48 trim register (undocumented,
+// write-protected, used by the BSP samples). The USB driver never clears SOFIF, so it is cleared here.
+#define HIRC48_TRIM (*(volatile uint32_t *)(SYS_BASE + 0x118))
+#define HIRC48_TRIM_ERRORS (SYS_IRCTISTS_TFAILIF1_Msk | SYS_IRCTISTS_CLKERRIF1_Msk)
+#define HIRC48_TRIM_RANGE 16
+
+// Stop the auto-trim and put back a known-good trim; the next fresh SOF re-arms it.
+static void hirc48_trim_restore(uint32_t value) {
+    SYS->IRCTCTL1   = 0;
+    bool was_locked = (SYS->REGLCTL & 1u) == 0;
+    if (was_locked) UNLOCKREG();
+    HIRC48_TRIM = value;
+    if (was_locked) LOCKREG();
+    SYS->IRCTISTS = HIRC48_TRIM_ERRORS;
+    USBD->INTSTS  = USBD_INTSTS_SOFIF_Msk;
+}
+
 void housekeeping_task_kb(void) {
+    static bool     trim_init;
+    static uint32_t trim_default, trim_last;
+
     indicator(7, keymap_config.no_gui);
+
+    if (!trim_init) {
+        trim_default = trim_last = HIRC48_TRIM;           // not armed yet: still the boot value
+        USBD->INTSTS             = USBD_INTSTS_SOFIF_Msk; // only a SOF seen from now on may arm it
+        trim_init                = true;
+        return;
+    }
+    if (SYS->IRCTISTS & HIRC48_TRIM_ERRORS) {
+        hirc48_trim_restore(trim_last);
+        return;
+    }
+    uint32_t trim = HIRC48_TRIM;
+    if (trim > trim_default + HIRC48_TRIM_RANGE || trim + HIRC48_TRIM_RANGE < trim_default) {
+        hirc48_trim_restore(trim_last);
+        return;
+    }
+    trim_last = trim;
+    // FREQSEL=10 (48 MHz), LOOPSEL=01, RETRYCNT=00, CESTOPEN=1, REFCKSEL=1 (USB SOF); stock writes 0x512 too
     if ((SYS->IRCTCTL1 & SYS_IRCTCTL1_FREQSEL_Msk) != 2 && (USBD->INTSTS & USBD_INTSTS_SOFIF_Msk)) {
+        USBD->INTSTS  = USBD_INTSTS_SOFIF_Msk;
         SYS->IRCTCTL1 = 0x512;
     }
 }
